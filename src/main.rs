@@ -1,10 +1,14 @@
 use std::io::{self, Result as IOResult, Write};
 
 mod types;
-use types::types::parse_to_type;
+use types::parse_to_type;
 
 mod color;
-use color::color::Color;
+use crate::color::Color;
+
+mod token;
+#[allow(unused_imports)]
+use crate::token::Token;
 
 fn main() -> IOResult<()> {
     println!("Hello, world!");
