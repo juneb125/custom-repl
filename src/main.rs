@@ -3,6 +3,9 @@ use std::io::{self, Result as IOResult, Write};
 mod types;
 use types::types::parse_to_type;
 
+mod color;
+use color::color::Color;
+
 fn main() -> IOResult<()> {
     println!("Hello, world!");
 
@@ -50,6 +53,6 @@ fn parse_colon_cmd<T: Write>(cmd: &str, output: &mut T) -> IOResult<()> {
     match cmd {
         "h" | "help" | "?" => writeln!(output, "Print help info"),
         // more to come...
-        _ => writeln!(output, "Error: command not found"),
+        _ => writeln!(output, "{}", "Error: command not found".set_fg(1)),
     }
 }

@@ -1,4 +1,6 @@
 pub mod types {
+    use crate::color::color::Color;
+
     #[allow(unused)]
     #[derive(Debug)]
     pub enum Primitive<'a> {
@@ -24,7 +26,7 @@ pub mod types {
             "false" => Ok(Type::Bool(false)),
             i if is_surrounded(i, '\'') => {
                 // TODO: parse chars
-                Err("TODO: Implement parsing to Primitive::Char(_)".to_string())
+                Err("Todo: parsing to Primitive::Char is not yet implemented".set_fg(3))
             }
             i if is_surrounded(i, '\"') => {
                 // BUG: since argv (in main.rs) is split by space, there isn't a way right now to represent strings w/ more than 1 word
@@ -33,15 +35,15 @@ pub mod types {
             }
             i if i.contains(DIGITS) => match i.contains('.') {
                 true => match i.parse::<f32>() {
-                    Ok(val) => Ok(Primitive::Float(val)),
-                    Err(e) => Err(e.to_string()),
+                    Ok(val) => Ok(Type::Float(val)),
+                    Err(e) => Err(format!("Error: {e}").set_fg(1)),
                 },
                 false => match i.parse::<i32>() {
-                    Ok(val) => Ok(Primitive::Int(val)),
-                    Err(e) => Err(e.to_string()),
+                    Ok(val) => Ok(Type::Int(val)),
+                    Err(e) => Err(format!("Error: {e}").set_fg(1)),
                 },
             },
-            _ => Err("Error: could not convert input to a internal/builtin type".to_string()),
+            _ => Err("Error: could not convert input to a internal/builtin type".set_fg(1)),
         }
     }
 }
