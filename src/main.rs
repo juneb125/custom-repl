@@ -1,14 +1,10 @@
 use std::io::{self, Result as IOResult, Write};
 
-mod types;
-use types::parse_to_type;
-
 mod color;
-use crate::color::Color;
-
+mod lexer;
 mod token;
-#[allow(unused_imports)]
-use crate::token::Token;
+
+use crate::color::Color;
 
 fn main() -> IOResult<()> {
     println!("Hello, world!");
@@ -25,26 +21,24 @@ fn main() -> IOResult<()> {
         stdin.read_line(&mut input).unwrap();
 
         let formatted_input: &str = input.as_str().trim();
-        let argv: Vec<&str> = formatted_input.split(' ').collect();
+        let argv: Vec<char> = formatted_input.chars().collect();
+
+        if argv.len() == 0 {
+            continue 'main_loop;
+        }
 
         // inspiration from the nix repl for cmd's that begin w/ ':'
         match argv[0] {
-            ":q" => {
-                writeln!(stdout, "See you next time :)")?;
-                break 'main_loop;
-            }
-            i if i.starts_with(':') => {
-                let stripped_i = i.strip_prefix(':').unwrap();
-                parse_colon_cmd(stripped_i, &mut stdout)?
-            }
-            "" => (),
-            i => match parse_to_type(i) {
-                Ok(val) => {
-                    writeln!(stdout, "You entered: {:?}", i)?;
-                    writeln!(stdout, "Your parsed input is: {:?}", val)?;
+            ':' => match argv[1..] {
+                ['q', _] => {
+                    writeln!(stdout, "See you next time :)")?;
+                    break 'main_loop;
                 }
-                Err(error) => writeln!(stdout, "{}", error)?,
+                _ => parse_colon_cmd(&argv[1..], &mut stdout)?,
             },
+            '\'' => writeln!(stdout, "{}", "Todo: character parsing".set_fg(3))?,
+            '\"' => writeln!(stdout, "{}", "Todo: string parsing".set_fg(3))?,
+            _ => writeln!(stdout, "????")?,
         }
 
         stdout.flush()?
@@ -53,9 +47,10 @@ fn main() -> IOResult<()> {
     Ok(())
 }
 
-fn parse_colon_cmd<T: Write>(cmd: &str, output: &mut T) -> IOResult<()> {
+fn parse_colon_cmd<T: Write>(cmd: &[char], output: &mut T) -> IOResult<()> {
     match cmd {
-        "h" | "help" | "?" => writeln!(output, "Print help info"),
+        ['h', 'e', 'l', 'p', ..] => writeln!(output, "Print help info"),
+        ['h', ..] | ['?', ..] => writeln!(output, "Print help info"),
         // more to come...
         _ => writeln!(output, "{}", "Error: command not found".set_fg(1)),
     }
