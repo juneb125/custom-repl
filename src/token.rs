@@ -22,7 +22,7 @@ pub enum Token<'a> {
     LBrace,   // {
     RBrace,   // }
 
-    // Int Arithmetic
+    // Number Ops
     Plus,     // +
     Minus,    // -
     Star,     // *
@@ -68,16 +68,14 @@ pub enum Token<'a> {
 impl<'a> fmt::Display for Token<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use Token as T;
-        let token_fmt = match self {
-            // TODO: figure out how to format literals
+        let token_fmt: &str = match self {
             // literals
             T::Identifier(val) => *val,
-            // T::Int(i) => " ",
-            // T::Float(i) => " ",
-            // T::Char(i) => " ",
-            T::String(i) => i,
-            T::Bool(true) => "true",
-            T::Bool(false) => "false",
+            T::Int(val) => return write!(f, "{val}"),
+            T::Float(val) => return write!(f, "{val}"),
+            T::Char(val) => return write!(f, "{val}"),
+            T::String(val) => *val,
+            T::Bool(val) => return write!(f, "{val}"),
 
             // grouping
             T::LParen => "(",
@@ -87,12 +85,11 @@ impl<'a> fmt::Display for Token<'a> {
             T::LBrace => "{",
             T::RBrace => "}",
 
-            // int arithmetic
+            // number ops
             T::Plus => "+",
             T::Minus => "-",
             T::Star => "*",
             T::Slash => "/",
-            // misc. number ops
             T::Equal => "=",
             T::Percent => "%",
             T::StarStar => "**",
@@ -128,8 +125,6 @@ impl<'a> fmt::Display for Token<'a> {
             T::DotDot => "..",
             T::Vbar => "|",
             T::Eof => "EOF",
-
-            _ => "== Unknown ==",
         };
 
         write!(f, "{token_fmt}")
