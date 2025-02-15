@@ -3,8 +3,7 @@ use std::io::{self, Result as IOResult, Write};
 mod color;
 mod lexer;
 mod token;
-
-use crate::color::Color;
+mod utils;
 
 fn main() -> IOResult<()> {
     println!("Hello, world!");
@@ -30,28 +29,22 @@ fn main() -> IOResult<()> {
         // inspiration from the nix repl for cmd's that begin w/ ':'
         match argv[0] {
             ':' => match argv[1..] {
-                ['q', _] => {
+                [_, _, ..] => errRepl!(error, "unknown command")?,
+                ['q', ..] => {
                     writeln!(stdout, "See you next time :)")?;
                     break 'main_loop;
                 }
-                _ => parse_colon_cmd(&argv[1..], &mut stdout)?,
+                ['h', ..] | ['?', ..] => writeln!(stdout, "Print help info")?,
+                // more to come...
+                _ => errRepl!(error, "unknown command")?,
             },
-            '\'' => writeln!(stdout, "{}", "Todo: character parsing".set_fg(3))?,
-            '\"' => writeln!(stdout, "{}", "Todo: string parsing".set_fg(3))?,
-            _ => writeln!(stdout, "????")?,
+            '\'' => warnRepl!(todo, "character parsing")?,
+            '\"' => warnRepl!(todo, "string parsing")?,
+            _ => warnRepl!("TODO!: actually parse the input")?,
         }
 
         stdout.flush()?
     }
 
     Ok(())
-}
-
-fn parse_colon_cmd<T: Write>(cmd: &[char], output: &mut T) -> IOResult<()> {
-    match cmd {
-        ['h', 'e', 'l', 'p', ..] => writeln!(output, "Print help info"),
-        ['h', ..] | ['?', ..] => writeln!(output, "Print help info"),
-        // more to come...
-        _ => writeln!(output, "{}", "Error: command not found".set_fg(1)),
-    }
 }
