@@ -24,18 +24,18 @@ impl<'a> Lexer<'a> {
     }
 
     /// gets the next char without increasing location
-    fn peek(&self) -> Option<&char> {
+    fn peek(&self) -> LexerResult<&char> {
         match self.location {
-            i if (i + 1) >= self.src_len() => None,
-            _ => Some(&self.source[self.location + 1]),
+            i if (i + 1) >= self.src_len() => Err(LexerError::OutOfBounds),
+            _ => Ok(&self.source[self.location + 1]),
         }
     }
 
     /// gets the previous char without decreasing location
-    fn prev(&self) -> Option<&char> {
+    fn prev(&self) -> LexerResult<&char> {
         match self.location {
-            0 => None,
-            _ => Some(&self.source[self.location - 1]),
+            0 => Err(LexerError::OutOfBounds),
+            _ => Ok(&self.source[self.location - 1]),
         }
     }
 
@@ -62,3 +62,24 @@ impl<'a> Lexer<'a> {
         }
     }
 }
+
+#[allow(unused)]
+enum LexerError {
+    OutOfBounds,
+    UnknownChar(char),
+}
+
+use std::fmt;
+impl fmt::Display for LexerError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use LexerError as LE;
+        let m = match self {
+            LE::OutOfBounds => "out of bounds".to_string(),
+            LE::UnknownChar(ch) => format!("unknown character: {}", ch),
+        };
+
+        write!(f, "{m}")
+    }
+}
+
+type LexerResult<T> = Result<T, LexerError>;
