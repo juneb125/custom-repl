@@ -1,7 +1,7 @@
 use crate::token::Token;
 
 pub struct Lexer<'a> {
-    pub source: &'a [u8],
+    pub source: Vec<char>,
     pub tokens: Vec<Token<'a>>,
     pub location: usize,
     // location is the current character (in source) that we're looking at
@@ -12,14 +12,35 @@ pub struct Lexer<'a> {
 impl<'a> Lexer<'a> {
     fn new(source: &'a str) -> Self {
         Self {
-            source: source.as_bytes(),
+            source: source.chars().collect(),
             tokens: Vec::new(),
             location: 0,
         }
     }
 
+    /// gets the char at the current location
     fn this(&self) -> char {
-        self.source[self.location].into()
+        self.source[self.location]
+    }
+
+    /// gets the next char without increasing location
+    fn peek(&self) -> Option<&char> {
+        match self.location {
+            i if (i + 1) >= self.src_len() => None,
+            _ => Some(&self.source[self.location + 1]),
+        }
+    }
+
+    /// gets the previous char without decreasing location
+    fn prev(&self) -> Option<&char> {
+        match self.location {
+            0 => None,
+            _ => Some(&self.source[self.location - 1]),
+        }
+    }
+
+    fn push_token(&mut self, token: Token<'a>) {
+        self.tokens.push(token);
     }
 
     // TODO: check for 'off by 1' errors for "is_last_char()" (and any fn that calls it)
@@ -27,34 +48,16 @@ impl<'a> Lexer<'a> {
         // returns true if there's no more chars left
         // "abcd"
         //     ^ is_last_char() would return true here b/c self.location == 3
-        (self.location + 1) >= self.source.len()
+        self.location >= self.src_len()
     }
 
-    // gets the next char without increasing location
-    fn peek(&self) -> Option<char> {
-        if self.is_last_char() {
-            // out of bounds
-            return None;
-        }
-        Some(self.source[self.location + 1].into())
-    }
-
-    // just increases location
-    fn advance(&mut self) -> Result<(), &str> {
-        if self.is_last_char() {
-            return Err("out of bounds");
-        }
-        self.location += 1;
-        Ok(())
-    }
-
-    fn push_token(&mut self, token: Token<'a>) {
-        self.tokens.push(token);
+    fn src_len(&self) -> usize {
+        self.source.len()
     }
 
     fn is_whitespace(&self) -> bool {
         match self.source[self.location] {
-            b' ' | b'\n' | b'\t' | b'\r' | b'\0' => true,
+            ' ' | '\n' | '\t' | '\r' | '\0' => true,
             _ => false,
         }
     }
