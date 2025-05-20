@@ -56,10 +56,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn is_whitespace(&self) -> bool {
-        match self.source[self.location] {
-            ' ' | '\n' | '\t' | '\r' | '\0' => true,
-            _ => false,
-        }
+        matches!(self.this(), ' ' | '\n' | '\t' | '\r' | '\0')
     }
 }
 
