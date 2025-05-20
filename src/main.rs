@@ -1,3 +1,5 @@
+#![allow(unused_results)]
+
 use std::io::{self, Result as IOResult, Write};
 
 mod color;
@@ -6,10 +8,10 @@ mod token;
 mod utils;
 
 fn main() -> IOResult<()> {
-    println!("Hello, world!");
+    let mut stdout = io::stdout().lock();
 
     let cl_prompt: &str = "\n(this-repl)> ";
-    let mut stdout = io::stdout().lock();
+    let secondary_prompt: &str = ">> ";
 
     'main_loop: loop {
         write!(stdout, "{}", cl_prompt)?;
@@ -18,6 +20,17 @@ fn main() -> IOResult<()> {
         let stdin = io::stdin();
         let mut input = String::new();
         stdin.read_line(&mut input).unwrap();
+
+        while input.strip_end_nl_sp().ends_with('\\') {
+            write!(stdout, "{}", secondary_prompt)?;
+            stdout.flush()?;
+
+            let mut new_buf: String = String::new();
+            stdin.read_line(&mut new_buf).unwrap();
+
+            input = format!("{}\n{}", input.prepare_for_append(), new_buf);
+            new_buf = "".to_string();
+        }
 
         let formatted_input: &str = input.as_str().trim();
         let argv: Vec<char> = formatted_input.chars().collect();
@@ -47,4 +60,35 @@ fn main() -> IOResult<()> {
     }
 
     Ok(())
+}
+
+trait CustomStripSuffix {
+    fn prepare_for_append(&mut self) -> Self;
+    fn strip_end_nl_sp(&mut self) -> Self;
+}
+
+impl CustomStripSuffix for String {
+    /// pops off the last character until it hits a char that
+    /// isn't any of these: `[' ', '\n', '\t']`
+    fn strip_end_nl_sp(&mut self) -> Self {
+        let mut abc = format!("{}", self);
+        while let Some(ch) = abc.pop() {
+            if !matches!(ch, ' ' | '\n' | '\t') {
+                return format!("{}{}", abc, ch);
+            }
+        }
+        return format!("{}", abc);
+    }
+
+    /// pops off the last character until it hits a char that
+    /// isn't any of these: `['\\', ' ', '\n', '\t']`
+    fn prepare_for_append(&mut self) -> Self {
+        let mut abc = format!("{}", self);
+        while let Some(ch) = abc.pop() {
+            if !matches!(ch, '\\' | ' ' | '\n' | '\t') {
+                return format!("{}{}", abc, ch);
+            }
+        }
+        return format!("{}", self);
+    }
 }
