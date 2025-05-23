@@ -1,5 +1,3 @@
-#![allow(unused_results)]
-
 use std::io::{self, Result as IOResult, Write};
 
 mod color;
@@ -19,25 +17,25 @@ fn main() -> IOResult<()> {
 
         let stdin = io::stdin();
         let mut input = String::new();
-        stdin.read_line(&mut input).unwrap();
+        stdin.read_line(&mut input).expect("Couldn't read input");
 
         while input.strip_end_nl_sp().ends_with('\\') {
             write!(stdout, "{}", secondary_prompt)?;
             stdout.flush()?;
 
             let mut new_buf: String = String::new();
-            stdin.read_line(&mut new_buf).unwrap();
+            stdin.read_line(&mut new_buf).expect("Couldn't read input");
 
             input = format!("{}\n{}", input.prepare_for_append(), new_buf);
             new_buf = "".to_string();
         }
 
         let formatted_input: &str = input.as_str().trim();
-        let argv: Vec<char> = formatted_input.chars().collect();
-
-        if argv.len() == 0 {
+        if formatted_input.len() == 0 {
             continue 'main_loop;
         }
+
+        let argv: Vec<char> = formatted_input.chars().collect();
 
         // inspiration from the nix repl for cmd's that begin w/ ':'
         match argv[0] {
@@ -45,6 +43,7 @@ fn main() -> IOResult<()> {
                 [_, _, ..] => errRepl!(error, "unknown command")?,
                 ['q', ..] => {
                     writeln!(stdout, "See you next time :)")?;
+                    stdout.flush()?;
                     break 'main_loop;
                 }
                 ['h', ..] | ['?', ..] => writeln!(stdout, "Print help info")?,
@@ -86,6 +85,7 @@ impl CustomStripSuffix for String {
     ///   .strip_end_nl_sp()
     ///   .strip_suffix('\\')
     ///   .unwrap_or(self.as_str())
+    ///   .to_string()
     /// ```
     fn prepare_for_append(&self) -> Self {
         let foo = self.strip_end_nl_sp();
