@@ -63,14 +63,14 @@ fn main() -> IOResult<()> {
 }
 
 trait CustomStripSuffix {
-    fn prepare_for_append(&mut self) -> Self;
-    fn strip_end_nl_sp(&mut self) -> Self;
+    fn strip_end_nl_sp(&self) -> Self;
+    fn prepare_for_append(&self) -> Self;
 }
 
 impl CustomStripSuffix for String {
     /// pops off the last character until it hits a char that
     /// isn't any of these: `[' ', '\n', '\t']`
-    fn strip_end_nl_sp(&mut self) -> Self {
+    fn strip_end_nl_sp(&self) -> Self {
         let mut abc = format!("{}", self);
         while let Some(ch) = abc.pop() {
             if !matches!(ch, ' ' | '\n' | '\t') {
@@ -80,15 +80,18 @@ impl CustomStripSuffix for String {
         return format!("{}", abc);
     }
 
-    /// pops off the last character until it hits a char that
-    /// isn't any of these: `['\\', ' ', '\n', '\t']`
-    fn prepare_for_append(&mut self) -> Self {
-        let mut abc = format!("{}", self);
-        while let Some(ch) = abc.pop() {
-            if !matches!(ch, '\\' | ' ' | '\n' | '\t') {
-                return format!("{}{}", abc, ch);
-            }
+    /// shorthand for:
+    /// ```no_run
+    /// self
+    ///   .strip_end_nl_sp()
+    ///   .strip_suffix('\\')
+    ///   .unwrap_or(self.as_str())
+    /// ```
+    fn prepare_for_append(&self) -> Self {
+        let foo = self.strip_end_nl_sp();
+        match foo.strip_suffix('\\') {
+            Some(i) => i.to_string(),
+            None => foo,
         }
-        return format!("{}", self);
     }
 }
